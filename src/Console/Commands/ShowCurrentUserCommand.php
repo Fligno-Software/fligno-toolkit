@@ -49,6 +49,8 @@ class ShowCurrentUserCommand extends Command
             fligno_toolkit()->setPrivateToken($token);
         }
 
-        return $this->call('toolkit:user');
+        $this->info('Welcome to Fligno Toolkit, ' . $user->get('name') . ' (' . $user->get('email') . ')!');
+
+        return 0;
     }
 }
