@@ -2,9 +2,8 @@
 
 namespace Fligno\FlignoToolkit\Console\Commands;
 
-use Fligno\FlignoToolkit\Traits\UsesGitlabFormattedDataTrait;
+use Fligno\FlignoToolkit\Traits\UsesGitlabDataTrait;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
 
 /**
  * Class ListPackagesCommand
@@ -13,7 +12,7 @@ use Illuminate\Support\Arr;
  */
 class ListPackagesCommand extends Command
 {
-    use UsesGitlabFormattedDataTrait;
+    use UsesGitlabDataTrait;
 
     /**
      * The name and signature of the console command.
@@ -27,24 +26,7 @@ class ListPackagesCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
-
-    /**
-     * Create a new console command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-//        $this->getDefinition()->addArgument(new InputArgument(
-//            'group_id',
-//            InputArgument::OPTIONAL,
-//            'Gitlab Group ID where the package is located.'
-//        ));
-    }
-
+    protected $description = 'List all current Gitlab user\'s allowed packages.';
 
     /**
      * Execute the console command.
@@ -53,15 +35,9 @@ class ListPackagesCommand extends Command
      */
     public function handle(): int
     {
-        self::setGroupsData();
+        $this->fetchUserData();
 
-        $this->showFormattedGroupsDataTable();
-
-        $choice = $this->choice('Select Group ID', self::getGroupsData()?->pluck('id')->toArray());
-
-        self::setPackagesData($choice);
-
-        $this->showFormattedPackagesDataTable();
+        $this->showPackagesTable();
 
         return 0;
     }

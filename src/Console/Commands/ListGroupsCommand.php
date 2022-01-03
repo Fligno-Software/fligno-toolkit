@@ -2,7 +2,7 @@
 
 namespace Fligno\FlignoToolkit\Console\Commands;
 
-use Fligno\FlignoToolkit\Traits\UsesGitlabFormattedDataTrait;
+use Fligno\FlignoToolkit\Traits\UsesGitlabDataTrait;
 use Illuminate\Console\Command;
 
 /**
@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  */
 class ListGroupsCommand extends Command
 {
-    use UsesGitlabFormattedDataTrait;
+    use UsesGitlabDataTrait;
 
     /**
      * The name and signature of the console command.
@@ -26,7 +26,7 @@ class ListGroupsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'List all current Gitlab user\'s allowed groups.';
 
     /**
      * Execute the console command.
@@ -35,9 +35,9 @@ class ListGroupsCommand extends Command
      */
     public function handle(): int
     {
-        self::setGroupsData();
+        $this->fetchUserData();
 
-        $this->showFormattedGroupsDataTable();
+        $this->showGroupsTable();
 
         return 0;
     }

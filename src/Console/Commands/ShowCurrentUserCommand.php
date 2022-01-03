@@ -2,7 +2,7 @@
 
 namespace Fligno\FlignoToolkit\Console\Commands;
 
-use Fligno\FlignoToolkit\Traits\UsesGitlabFormattedDataTrait;
+use Fligno\FlignoToolkit\Traits\UsesGitlabDataTrait;
 use Illuminate\Console\Command;
 
 /**
@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  */
 class ShowCurrentUserCommand extends Command
 {
-    use UsesGitlabFormattedDataTrait;
+    use UsesGitlabDataTrait;
 
     /**
      * The name and signature of the console command.
@@ -26,7 +26,7 @@ class ShowCurrentUserCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Show current user information from Gitlab Personal Access Token (PAT).';
 
     /**
      * Execute the console command.
@@ -35,21 +35,11 @@ class ShowCurrentUserCommand extends Command
      */
     public function handle(): int
     {
-        $user = fligno_toolkit()->getCurrentUser();
+        $this->fetchUserData();
 
-        if (! $user)
-        {
-            do{
-                $this->error('Gitlab Personal Access Token (PAT) is EMPTY.');
-                $this->info('Create a PAT here: ' . fligno_toolkit()->getGitlabSdk()->getUrl() . '/-/profile/personal_access_tokens');
-                $token = $this->secret('Enter Personal Access Token');
-            }
-            while(! $token);
-
-            fligno_toolkit()->setPrivateToken($token);
+        if ($this->getUserData()) {
+            $this->note('Welcome to Fligno Toolkit, ' . $this->getUserData()->get('name') . ' (' . $this->getUserData()->get('email') . ')!');
         }
-
-        $this->info('Welcome to Fligno Toolkit, ' . $user->get('name') . ' (' . $user->get('email') . ')!');
 
         return 0;
     }
