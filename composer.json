@@ -41,6 +41,10 @@
             "aliases": {
                 "FlignoToolkit": "Fligno\\FlignoToolkit\\Facades\\FlignoToolkit"
             }
+        },
+        "branch-alias": {
+            "dev-master": "1.0.x-dev",
+            "dev-develop": "1.0.x-dev"
         }
     }
 }
