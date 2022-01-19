@@ -4,6 +4,13 @@ namespace Fligno\FlignoToolkit\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
+/**
+ * Class FlignoToolkit
+ *
+ * @author James Carlo Luchavez <jamescarlo.luchavez@fligno.com>
+ *
+ * @see \Fligno\FlignoToolkit\FlignoToolkit
+ */
 class FlignoToolkit extends Facade
 {
     /**
