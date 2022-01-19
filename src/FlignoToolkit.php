@@ -2,6 +2,8 @@
 
 namespace Fligno\FlignoToolkit;
 
+use Fligno\GitlabSdk\Data\Groups\GetAllGroupsAttributes;
+use Fligno\GitlabSdk\Data\Packages\GetAllPackagesAttributes;
 use Fligno\GitlabSdk\GitlabSdk;
 use Illuminate\Support\Collection;
 use Symfony\Component\Process\Process;
@@ -141,13 +143,27 @@ class FlignoToolkit
      */
     public function getCurrentUserGroups(): ?Collection
     {
-        $req = $this->getGitlabSdk()->groups()->all()();
+        $data = new GetAllGroupsAttributes;
 
-        if ($req->ok()) {
-            return $req->collect();
+        $result = collect();
+
+        $i = 1;
+
+        do {
+            $data->page = $i++;
+            $req = $this->getGitlabSdk()->groups()->all()($data);
+
+            if ($req->ok()) {
+                $output = $req->collect();
+                $result = $result->merge($output->toArray());
+            }
+            else {
+                break;
+            }
         }
+        while($output->count() > 0);
 
-        return null;
+        return $result->count() > 0 ? $result : null;
     }
 
     /**
@@ -156,16 +172,30 @@ class FlignoToolkit
      */
     public function getGroupPackages(int $groupId): ?Collection
     {
-        $req = $this->getGitlabSdk()->packages()->allPackages()($groupId, [
-            'package_type' => 'composer',
-            'order_by' => 'name',
-        ]);
+        $data = new GetAllPackagesAttributes;
 
-        if ($req->ok()) {
-            return $req->collect();
+        $data->order_by = 'name';
+        $data->package_type = 'composer';
+
+        $result = collect();
+
+        $i = 1;
+
+        do {
+            $data->page = $i++;
+            $req = $this->getGitlabSdk()->packages()->allPackages()($groupId, $data);
+
+            if ($req->ok()) {
+                $output = $req->collect();
+                $result = $result->merge($output->toArray());
+            }
+            else {
+                break;
+            }
         }
+        while($output->count() > 0);
 
-        return null;
+        return $result->count() > 0 ? $result : null;
     }
 
     /***** OTHER METHODS *****/
@@ -208,7 +238,7 @@ class FlignoToolkit
                 'composer',
                 'config',
                 'repositories.' . config('gitlab-sdk.url') . '/' . $groupId,
-                "{\"type\": \"composer\", \"url\": \"{$this->getGitlabSdk()->getApiUrl()}/group/$groupId/-/packages/composer/packages.json\"}"
+                "{\"type\": \"composer\", \"url\": \"{$this->getGitlabSdk()->getBaseUrl()}/group/$groupId/-/packages/composer/packages.json\"}"
             ];
 
             $process = $this->createProcess($repositoryArguments, $workingDirectory);

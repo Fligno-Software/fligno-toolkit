@@ -23,7 +23,7 @@
     },
     "autoload": {
         "files": [
-            "helpers/CustomHelpers.php"
+          "helpers/fligno-toolkit-helper.php"
         ],
         "psr-4": {
             "Fligno\\FlignoToolkit\\": "src/"
