@@ -46,7 +46,7 @@ class FlignoToolkit
 
         if ($privateToken && $persistToComposerAuth)
         {
-            $process = $this->createProcess([
+            $process = make_process([
                 'composer',
                 'global',
                 'config',
@@ -88,7 +88,7 @@ class FlignoToolkit
      */
     public function getGitlabTokenFromComposerAuth(): ?string
     {
-        $process = $this->createProcess([
+        $process = make_process([
             'composer',
             'global',
             'config',
@@ -201,24 +201,6 @@ class FlignoToolkit
     /***** OTHER METHODS *****/
 
     /**
-     * @param Collection|array $arguments
-     * @param string|null $workingDirectory
-     * @return Process
-     */
-    public function createProcess(Collection|array $arguments, string $workingDirectory = null): Process
-    {
-        if (! $workingDirectory) {
-            $workingDirectory = base_path();
-        }
-
-        if ($arguments instanceof Collection) {
-            $arguments = $arguments->toArray();
-        }
-
-        return new Process($arguments, $workingDirectory);
-    }
-
-    /**
      * @param string $package
      * @param bool $isDevDependency
      * @param int|null $groupId
@@ -241,7 +223,7 @@ class FlignoToolkit
                 "{\"type\": \"composer\", \"url\": \"{$this->getGitlabSdk()->getBaseUrl()}/group/$groupId/-/packages/composer/packages.json\"}"
             ];
 
-            $process = $this->createProcess($repositoryArguments, $workingDirectory);
+            $process = make_process($repositoryArguments, $workingDirectory);
 
             $process->start();
 
@@ -270,7 +252,7 @@ class FlignoToolkit
                 return $collection->push('--dev');
             });
 
-            $process = $this->createProcess($packageArguments, $workingDirectory);
+            $process = make_process($packageArguments, $workingDirectory);
 
             $process->start();
 

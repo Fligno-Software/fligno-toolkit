@@ -27,6 +27,8 @@ class FlignoToolkitServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        parent::register();
+
         $this->mergeConfigFrom(__DIR__.'/../config/fligno-toolkit.php', 'fligno-toolkit');
 
         // Register the service the package provides.
