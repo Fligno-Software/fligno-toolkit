@@ -22,9 +22,6 @@
         "orchestra/testbench": "~5|~6"
     },
     "autoload": {
-        "files": [
-          "helpers/fligno-toolkit-helper.php"
-        ],
         "psr-4": {
             "Fligno\\FlignoToolkit\\": "src/"
         }
