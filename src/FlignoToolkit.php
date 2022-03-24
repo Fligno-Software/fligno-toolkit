@@ -124,13 +124,13 @@ class FlignoToolkit
 
         $hasCallback && $callbackWithSteps($step++);
 
-        $req = $this->getGitlabSdk()->users()->current()();
+        $req = $this->getGitlabSdk()->getHealthCheck();
 
         if ($req->ok()) {
 
             $hasCallback && $callbackWithSteps($step);
 
-            return $req->collect();
+            return $req->data;
         }
 
         $hasCallback && $callbackWithSteps(-1);
