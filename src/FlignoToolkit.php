@@ -228,9 +228,9 @@ class FlignoToolkit
                 'composer',
                 'config',
                 'repositories.' . config('gitlab-sdk.url') . '/' . $groupId,
-                '{\"type\": \"composer\", \"url\": \"' .
+                "{\"type\": \"composer\", \"url\": \"" .
                 $this->getGitlabSdk()->getBaseUrl() .
-                '/group/$groupId/-/packages/composer/packages.json\"}'
+                "/group/$groupId/-/packages/composer/packages.json\"}"
             ];
 
             $process = make_process($repositoryArguments, $workingDirectory);
