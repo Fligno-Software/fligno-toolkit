@@ -51,7 +51,9 @@ trait UsesGitlabDataTrait
      */
     protected string $packageChoice;
 
-    /***** SETTERS & GETTERS *****/
+    /*****
+     * SETTERS & GETTERS
+     *****/
 
     /**
      * @return void
@@ -86,16 +88,15 @@ trait UsesGitlabDataTrait
             }
         };
 
-        while (!($this->userData = fligno_toolkit()->getCurrentUser($getCurrentUserCallbackWithSteps)) )
-        {
-            do{
-                $this->note('Create a PAT here: ' . fligno_toolkit()->getGitlabSdk()->getUrl() . '/-/profile/personal_access_tokens.');
+        while (!($this->userData = fligno_toolkit()->getCurrentUser($getCurrentUserCallbackWithSteps))) {
+            do {
+                $this->note('Create a PAT here: ' .
+                    fligno_toolkit()->getGitlabSdk()->getUrl() . '/-/profile/personal_access_tokens.');
                 $this->note('When creating a PAT, only choose "read_api" from scopes.');
                 $token = $this->secret('Enter Personal Access Token (PAT)');
 
                 fligno_toolkit()->setPrivateToken($token, true, $setPrivateTokenCallbackWithSteps);
-            }
-            while(! $token);
+            } while (! $token);
         }
     }
 
@@ -114,14 +115,15 @@ trait UsesGitlabDataTrait
     {
         $groups = flignoToolkit()->getCurrentUserGroups();
 
-        if (! $groups)
-        {
+        if (! $groups) {
             throw new RuntimeException("Failed to get current user's groups.");
         }
 
-        $this->groupsData = $groups->mapWithKeys(function ($group) {
-            return [ $group['id'] => Arr::only($group, $this->groupsHeader) ];
-        });
+        $this->groupsData = $groups->mapWithKeys(
+            function ($group) {
+                return [ $group['id'] => Arr::only($group, $this->groupsHeader) ];
+            }
+        );
     }
 
     /**
@@ -139,14 +141,15 @@ trait UsesGitlabDataTrait
     {
         $packages = flignoToolkit()->getGroupPackages($groupId);
 
-        if (! $packages)
-        {
+        if (! $packages) {
             throw new RuntimeException('Failed to get current group packages.');
         }
 
-        $this->packagesData = $packages->mapWithKeys(function ($package) {
-            return [ $package['id'] => Arr::only($package, $this->packagesHeader) ];
-        });
+        $this->packagesData = $packages->mapWithKeys(
+            function ($package) {
+                return [ $package['id'] => Arr::only($package, $this->packagesHeader) ];
+            }
+        );
     }
 
     /**
@@ -157,7 +160,9 @@ trait UsesGitlabDataTrait
         return $this->packagesData;
     }
 
-    /***** OTHER FUNCTIONS *****/
+    /*****
+     * OTHER FUNCTIONS
+     *****/
 
     /**
      * @return void
@@ -193,9 +198,11 @@ trait UsesGitlabDataTrait
     {
         $this->showGroupsTable();
 
-        $groupChoices = $this->getGroupsData()?->map(function ($group){
-            return $group['id'];
-        });
+        $groupChoices = $this->getGroupsData()?->map(
+            function ($group) {
+                return $group['id'];
+            }
+        );
 
         $this->groupChoice = $this->choice('Select Group ID', $groupChoices->toArray());
 
@@ -217,13 +224,17 @@ trait UsesGitlabDataTrait
 
         // Prepare Packages for Selection
         $packageChoices = $this->getPackagesData()
-            ?->filter(function ($package) {
-                return ! Str::of($package['version'])->contains('dev');
-            })
-            ->map(function ($package) {
-                [ 'name' => $name, 'version' => $version ] = $package;
-                return $name . ':^' . $version;
-            });
+            ?->filter(
+                function ($package) {
+                    return ! Str::of($package['version'])->contains('dev');
+                }
+            )
+            ->map(
+                function ($package) {
+                    [ 'name' => $name, 'version' => $version ] = $package;
+                    return $name . ':^' . $version;
+                }
+            );
 
         $this->packageChoice = $this->choice('Select Package', $packageChoices->toArray());
     }

@@ -38,7 +38,8 @@ class ShowCurrentUserCommand extends Command
         $this->fetchUserData();
 
         if ($this->getUserData()) {
-            $this->note('Welcome to Fligno Toolkit, ' . $this->getUserData()->get('name') . ' (' . $this->getUserData()->get('email') . ')!');
+            $this->note('Welcome to Fligno Toolkit, ' .
+                $this->getUserData()->get('name') . ' (' . $this->getUserData()->get('email') . ')!');
         }
 
         return 0;

@@ -54,7 +54,8 @@ class RequirePackageCommand extends Command
                     $this->done('Added Gitlab Group #' . $this->groupChoice . ' to Composer repositories...');
                     break;
                 case 2:
-                    $this->ongoing('Requiring ' . $this->packageChoice . ($isDevDependency ? ' as dev dependency' : '') . '...');
+                    $this->ongoing('Requiring ' .
+                        $this->packageChoice . ($isDevDependency ? ' as dev dependency' : '') . '...');
                     break;
                 case 3:
                     $this->done('Required ' . $this->packageChoice . '...');
@@ -62,7 +63,14 @@ class RequirePackageCommand extends Command
             }
         };
 
-        $hasUpdated = flignoToolkit()->requirePackage($this->packageChoice, $isDevDependency, $this->groupChoice, null, true, $callbackWithSteps);
+        $hasUpdated = flignoToolkit()->requirePackage(
+            $this->packageChoice,
+            $isDevDependency,
+            $this->groupChoice,
+            null,
+            true,
+            $callbackWithSteps
+        );
 
         return (int) ! $hasUpdated;
     }

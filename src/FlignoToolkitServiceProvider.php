@@ -33,7 +33,7 @@ class FlignoToolkitServiceProvider extends ServiceProvider
 
         // Register the service the package provides.
         $this->app->singleton('fligno-toolkit', function ($app) {
-            return new FlignoToolkit;
+                return new FlignoToolkit;
         });
     }
 
@@ -55,9 +55,12 @@ class FlignoToolkitServiceProvider extends ServiceProvider
     protected function bootForConsole(): void
     {
         // Publishing the configuration file.
-        $this->publishes([
+        $this->publishes(
+            [
             __DIR__.'/../config/fligno-toolkit.php' => config_path('fligno-toolkit.php'),
-        ], 'fligno-toolkit.config');
+            ],
+            'fligno-toolkit.config'
+        );
 
         // Publishing the views.
         /*$this->publishes([

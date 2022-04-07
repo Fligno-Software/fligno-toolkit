@@ -12,7 +12,7 @@ use Symfony\Component\Process\Process;
  * Class FlignoToolkit
  *
  * @author James Carlo Luchavez <jamescarlo.luchavez@fligno.com>
- * @since 2021-12-20
+ * @since  2021-12-20
  */
 class FlignoToolkit
 {
@@ -28,15 +28,20 @@ class FlignoToolkit
         $this->setPrivateToken($this->getGitlabTokenFromComposerAuth());
     }
 
-    /***** GETTERS & SETTERS *****/
+    /*****
+     * GETTERS & SETTERS
+     *****/
 
     /**
-     * @param string|null $privateToken
-     * @param bool $persistToComposerAuth
+     * @param string|null   $privateToken
+     * @param bool          $persistToComposerAuth
      * @param callable|null $callbackWithSteps
      */
-    public function setPrivateToken(?string $privateToken, bool $persistToComposerAuth = true, callable $callbackWithSteps = null): void
-    {
+    public function setPrivateToken(
+        ?string $privateToken,
+        bool $persistToComposerAuth = true,
+        callable $callbackWithSteps = null
+    ): void {
         $hasCallback = (bool) $callbackWithSteps;
         $step = 0;
 
@@ -44,16 +49,17 @@ class FlignoToolkit
             $privateToken = trim($privateToken);
         }
 
-        if ($privateToken && $persistToComposerAuth)
-        {
-            $process = make_process([
+        if ($privateToken && $persistToComposerAuth) {
+            $process = make_process(
+                [
                 'composer',
                 'global',
                 'config',
                 'http-basic.'  . config('gitlab-sdk.url'),
                 '___token___',
                 $privateToken
-            ]);
+                ]
+            );
 
             $process->disableOutput();
 
@@ -65,8 +71,7 @@ class FlignoToolkit
 
             if ($process->isSuccessful()) {
                 $hasCallback && $callbackWithSteps($step);
-            }
-            else {
+            } else {
                 $hasCallback && $callbackWithSteps(-1);
             }
         }
@@ -88,17 +93,18 @@ class FlignoToolkit
      */
     public function getGitlabTokenFromComposerAuth(): ?string
     {
-        $process = make_process([
+        $process = make_process(
+            [
             'composer',
             'global',
             'config',
             'http-basic.' . config('gitlab-sdk.url') . '.password'
-        ]);
+            ]
+        );
 
         $process->run();
 
-        if ($process->isSuccessful())
-        {
+        if ($process->isSuccessful()) {
             return $process->getOutput();
         }
 
@@ -114,7 +120,7 @@ class FlignoToolkit
     }
 
     /**
-     * @param callable|null $callbackWithSteps
+     * @param  callable|null $callbackWithSteps
      * @return Collection|null
      */
     public function getCurrentUser(callable $callbackWithSteps = null): ?Collection
@@ -127,9 +133,7 @@ class FlignoToolkit
         $req = $this->getGitlabSdk()->getHealthCheck();
 
         if ($req->ok()) {
-
             $hasCallback && $callbackWithSteps($step);
-
             return $req->data;
         }
 
@@ -156,18 +160,16 @@ class FlignoToolkit
             if ($req->ok()) {
                 $output = $req->collect();
                 $result = $result->merge($output->toArray());
-            }
-            else {
+            } else {
                 break;
             }
-        }
-        while($output->count() > 0);
+        } while ($output->count() > 0);
 
         return $result->count() > 0 ? $result : null;
     }
 
     /**
-     * @param int $groupId
+     * @param  int $groupId
      * @return Collection|null
      */
     public function getGroupPackages(int $groupId): ?Collection
@@ -188,29 +190,35 @@ class FlignoToolkit
             if ($req->ok()) {
                 $output = $req->collect();
                 $result = $result->merge($output->toArray());
-            }
-            else {
+            } else {
                 break;
             }
-        }
-        while($output->count() > 0);
+        } while ($output->count() > 0);
 
         return $result->count() > 0 ? $result : null;
     }
 
-    /***** OTHER METHODS *****/
+    /*****
+     * OTHER METHODS
+     *****/
 
     /**
-     * @param string $package
-     * @param bool $isDevDependency
-     * @param int|null $groupId
-     * @param string|null $workingDirectory
-     * @param bool $shouldUpdate
-     * @param callable|null $callbackWithSteps
+     * @param  string        $package
+     * @param  bool          $isDevDependency
+     * @param  int|null      $groupId
+     * @param  string|null   $workingDirectory
+     * @param  bool          $shouldUpdate
+     * @param  callable|null $callbackWithSteps
      * @return bool
      */
-    public function requirePackage(string $package, bool $isDevDependency = false, int $groupId = null, string $workingDirectory = null, bool $shouldUpdate = true, callable $callbackWithSteps = null): bool
-    {
+    public function requirePackage(
+        string $package,
+        bool $isDevDependency = false,
+        int $groupId = null,
+        string $workingDirectory = null,
+        bool $shouldUpdate = true,
+        callable $callbackWithSteps = null
+    ): bool {
         $shouldRequire = true;
         $step = 0;
         $hasCallback = (bool) $callbackWithSteps;
@@ -220,7 +228,9 @@ class FlignoToolkit
                 'composer',
                 'config',
                 'repositories.' . config('gitlab-sdk.url') . '/' . $groupId,
-                "{\"type\": \"composer\", \"url\": \"{$this->getGitlabSdk()->getBaseUrl()}/group/$groupId/-/packages/composer/packages.json\"}"
+                '{\"type\": \"composer\", \"url\": \"' .
+                $this->getGitlabSdk()->getBaseUrl() .
+                '/group/$groupId/-/packages/composer/packages.json\"}'
             ];
 
             $process = make_process($repositoryArguments, $workingDirectory);
@@ -235,18 +245,19 @@ class FlignoToolkit
 
             if ($shouldRequire) {
                 $hasCallback && $callbackWithSteps($step++);
-            }
-            else {
+            } else {
                 $hasCallback && $callbackWithSteps(-1);
             }
         }
 
         if ($shouldRequire) {
-            $packageArguments = collect([
+            $packageArguments = collect(
+                [
                 'composer',
                 'require',
                 $package,
-            ])->when(! $shouldUpdate, function (Collection $collection) {
+                ]
+            )->when(! $shouldUpdate, function (Collection $collection) {
                 return $collection->push('--no-update');
             })->when($isDevDependency, function (Collection $collection) {
                 return $collection->push('--dev');
@@ -264,11 +275,9 @@ class FlignoToolkit
 
             if ($success) {
                 $hasCallback && $callbackWithSteps($step);
-            }
-            else {
+            } else {
                 $hasCallback && $callbackWithSteps(-1);
             }
-
         }
 
         return false;
