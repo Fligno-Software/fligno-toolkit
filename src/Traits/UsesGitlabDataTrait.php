@@ -2,6 +2,8 @@
 
 namespace Fligno\FlignoToolkit\Traits;
 
+use Fligno\GitlabSdk\DataTransferObjects\GitlabCurrentUserResponseData;
+use Fligno\StarterKit\Traits\UsesCommandCustomMessagesTrait;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -14,7 +16,7 @@ use RuntimeException;
  */
 trait UsesGitlabDataTrait
 {
-    use UsesCustomCommandMessagesTrait;
+    use UsesCommandCustomMessagesTrait;
 
     /**
      * @var array|string[]
@@ -27,9 +29,9 @@ trait UsesGitlabDataTrait
     protected array $packagesHeader = ['id', 'name', 'version'];
 
     /**
-     * @var Collection|null
+     * @var GitlabCurrentUserResponseData|null
      */
-    protected ?Collection $userData;
+    protected ?GitlabCurrentUserResponseData $userData;
 
     /**
      * @var Collection|null
@@ -63,13 +65,13 @@ trait UsesGitlabDataTrait
         $getCurrentUserCallbackWithSteps = function (int $step) {
             switch ($step) {
                 case -1:
-                    $this->failed('Failed to fetch user information using Gitlab Personal Access Token (PAT)....');
+                    $this->failed('Failed to fetch user information using Gitlab Personal Access Token (PAT).');
                     break;
                 case 0:
                     $this->ongoing('Fetching user information using Gitlab Personal Access Token (PAT)...');
                     break;
                 case 1:
-                    $this->done('Fetched user information using Gitlab Personal Access Token (PAT)...');
+                    $this->done('Fetched user information using Gitlab Personal Access Token (PAT).');
                     break;
             }
         };
@@ -83,16 +85,17 @@ trait UsesGitlabDataTrait
                     $this->ongoing('Saving PAT to COMPOSER_AUTH...');
                     break;
                 case 1:
-                    $this->done('Saved PAT to COMPOSER_AUTH...');
+                    $this->done('Saved PAT to COMPOSER_AUTH.');
                     break;
             }
         };
 
-        while (!($this->userData = fligno_toolkit()->getCurrentUser($getCurrentUserCallbackWithSteps))) {
+        while (! ($this->userData = fligno_toolkit()->getCurrentUser($getCurrentUserCallbackWithSteps))) {
             do {
-                $this->note('Create a PAT here: ' .
-                    fligno_toolkit()->getGitlabSdk()->getUrl() . '/-/profile/personal_access_tokens.');
-                $this->note('When creating a PAT, only choose "read_api" from scopes.');
+                $query = http_build_query(['name' => 'Fligno Toolkit', 'scopes' => 'read_api']);
+                $this->note('Create a PAT here: '.
+                    fligno_toolkit()->getGitlabSdk()->getUrl('/-/profile/personal_access_tokens?'.$query));
+                $this->warning('When creating a PAT, only choose "read_api" from scopes.');
                 $token = $this->secret('Enter Personal Access Token (PAT)');
 
                 fligno_toolkit()->setPrivateToken($token, true, $setPrivateTokenCallbackWithSteps);
@@ -101,9 +104,9 @@ trait UsesGitlabDataTrait
     }
 
     /**
-     * @return Collection|null
+     * @return GitlabCurrentUserResponseData|null
      */
-    public function getUserData(): ?Collection
+    public function getUserData(): ?GitlabCurrentUserResponseData
     {
         return $this->userData;
     }
@@ -121,7 +124,7 @@ trait UsesGitlabDataTrait
 
         $this->groupsData = $groups->mapWithKeys(
             function ($group) {
-                return [ $group['id'] => Arr::only($group, $this->groupsHeader) ];
+                return [$group['id'] => Arr::only($group, $this->groupsHeader)];
             }
         );
     }
@@ -135,7 +138,7 @@ trait UsesGitlabDataTrait
     }
 
     /**
-     * @param int $groupId
+     * @param  int  $groupId
      */
     public function fetchPackagesData(int $groupId): void
     {
@@ -147,7 +150,7 @@ trait UsesGitlabDataTrait
 
         $this->packagesData = $packages->mapWithKeys(
             function ($package) {
-                return [ $package['id'] => Arr::only($package, $this->packagesHeader) ];
+                return [$package['id'] => Arr::only($package, $this->packagesHeader)];
             }
         );
     }
@@ -160,9 +163,7 @@ trait UsesGitlabDataTrait
         return $this->packagesData;
     }
 
-    /*****
-     * OTHER FUNCTIONS
-     *****/
+    /***** OTHER FUNCTIONS *****/
 
     /**
      * @return void
@@ -178,7 +179,7 @@ trait UsesGitlabDataTrait
 
         $this->fetchGroupsData();
 
-        $this->done('Fetched current user\'s Gitlab groups...');
+        $this->done('Fetched current user\'s Gitlab groups.');
 
         $this->getGroupsTable();
     }
@@ -210,7 +211,7 @@ trait UsesGitlabDataTrait
 
         $this->fetchPackagesData($this->groupChoice);
 
-        $this->done('Fetched group\'s Gitlab packages...');
+        $this->done('Fetched group\'s Gitlab packages.');
 
         $this->getPackagesTable();
     }
@@ -232,7 +233,8 @@ trait UsesGitlabDataTrait
             ->map(
                 function ($package) {
                     [ 'name' => $name, 'version' => $version ] = $package;
-                    return $name . ':^' . $version;
+
+                    return $name.':^'.$version;
                 }
             );
 

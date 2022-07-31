@@ -2,9 +2,11 @@
 
 namespace Fligno\FlignoToolkit;
 
-use Fligno\FlignoToolkit\Console\Commands\RequirePackageCommand;
 use Fligno\FlignoToolkit\Console\Commands\ListGroupsCommand;
 use Fligno\FlignoToolkit\Console\Commands\ListPackagesCommand;
+use Fligno\FlignoToolkit\Console\Commands\RemoveCurrentUserCommand;
+use Fligno\FlignoToolkit\Console\Commands\RequirePackageCommand;
+use Fligno\FlignoToolkit\Console\Commands\RevokeCurrentUserCommand;
 use Fligno\FlignoToolkit\Console\Commands\ShowCurrentUserCommand;
 use Fligno\StarterKit\Providers\BaseStarterKitServiceProvider as ServiceProvider;
 
@@ -18,6 +20,8 @@ class FlignoToolkitServiceProvider extends ServiceProvider
         ListPackagesCommand::class,
         ShowCurrentUserCommand::class,
         RequirePackageCommand::class,
+        RemoveCurrentUserCommand::class,
+        RevokeCurrentUserCommand::class,
     ];
 
     /**
@@ -33,7 +37,7 @@ class FlignoToolkitServiceProvider extends ServiceProvider
 
         // Register the service the package provides.
         $this->app->singleton('fligno-toolkit', function ($app) {
-                return new FlignoToolkit;
+            return new FlignoToolkit();
         });
     }
 
@@ -57,7 +61,7 @@ class FlignoToolkitServiceProvider extends ServiceProvider
         // Publishing the configuration file.
         $this->publishes(
             [
-            __DIR__.'/../config/fligno-toolkit.php' => config_path('fligno-toolkit.php'),
+                __DIR__.'/../config/fligno-toolkit.php' => config_path('fligno-toolkit.php'),
             ],
             'fligno-toolkit.config'
         );
@@ -78,6 +82,6 @@ class FlignoToolkitServiceProvider extends ServiceProvider
         ], 'fligno-toolkit.views');*/
 
         // Registering package commands.
-         $this->commands($this->commands);
+        $this->commands($this->commands);
     }
 }

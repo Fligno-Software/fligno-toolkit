@@ -48,17 +48,17 @@ class RequirePackageCommand extends Command
                     $this->failed('A step encountered an error.');
                     break;
                 case 0:
-                    $this->ongoing('Adding Gitlab Group #' . $this->groupChoice . ' to Composer repositories...');
+                    $this->ongoing('Adding Gitlab Group #'.$this->groupChoice.' to Composer repositories...');
                     break;
                 case 1:
-                    $this->done('Added Gitlab Group #' . $this->groupChoice . ' to Composer repositories...');
+                    $this->done('Added Gitlab Group #'.$this->groupChoice.' to Composer repositories...');
                     break;
                 case 2:
-                    $this->ongoing('Requiring ' .
-                        $this->packageChoice . ($isDevDependency ? ' as dev dependency' : '') . '...');
+                    $this->ongoing('Requiring '.
+                        $this->packageChoice.($isDevDependency ? ' as dev dependency' : '').'...');
                     break;
                 case 3:
-                    $this->done('Required ' . $this->packageChoice . '...');
+                    $this->done('Required '.$this->packageChoice.'...');
                     break;
             }
         };
@@ -82,8 +82,8 @@ class RequirePackageCommand extends Command
     {
         return [
             [
-                'dev', 'd', InputOption::VALUE_NONE, 'Require as dev dependency.'
-            ]
+                'dev', 'd', InputOption::VALUE_NONE, 'Require as dev dependency.',
+            ],
         ];
     }
 }

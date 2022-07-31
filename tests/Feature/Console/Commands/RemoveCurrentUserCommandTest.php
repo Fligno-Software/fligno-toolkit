@@ -5,11 +5,11 @@ namespace Fligno\FlignoToolkit\Feature\Console\Commands;
 use Tests\TestCase;
 
 /**
- * Class FlignoToolkitLoginCommandTest
+ * Class RemoveCurrentUserCommandTest
  *
  * @author James Carlo Luchavez <jamescarlo.luchavez@fligno.com>
  */
-class FlignoToolkitLoginCommandTest extends TestCase
+class RemoveCurrentUserCommandTest extends TestCase
 {
     /**
      * Example Test
