@@ -4,14 +4,15 @@ namespace Fligno\FlignoToolkit;
 
 use Fligno\GitlabSdk\Data\Groups\GetAllGroupsAttributes;
 use Fligno\GitlabSdk\Data\Packages\GetAllPackagesAttributes;
+use Fligno\GitlabSdk\DataTransferObjects\GitlabCurrentUserResponseData;
 use Fligno\GitlabSdk\GitlabSdk;
 use Illuminate\Support\Collection;
-use Symfony\Component\Process\Process;
 
 /**
  * Class FlignoToolkit
  *
  * @author James Carlo Luchavez <jamescarlo.luchavez@fligno.com>
+ *
  * @since  2021-12-20
  */
 class FlignoToolkit
@@ -21,21 +22,25 @@ class FlignoToolkit
      */
     protected string|null $privateToken;
 
+    /**
+     * @var GitlabSdk
+     */
     protected GitlabSdk $gitlabSdk;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->setPrivateToken($this->getGitlabTokenFromComposerAuth());
     }
 
-    /*****
-     * GETTERS & SETTERS
-     *****/
+    /***** GETTERS & SETTERS *****/
 
     /**
-     * @param string|null   $privateToken
-     * @param bool          $persistToComposerAuth
-     * @param callable|null $callbackWithSteps
+     * @param  string|null  $privateToken
+     * @param  bool  $persistToComposerAuth
+     * @param  callable|null  $callbackWithSteps
      */
     public function setPrivateToken(
         ?string $privateToken,
@@ -46,18 +51,18 @@ class FlignoToolkit
         $step = 0;
 
         if ($privateToken) {
-            $privateToken = trim($privateToken);
+            $privateToken = $this->cleanToken($privateToken);
         }
 
         if ($privateToken && $persistToComposerAuth) {
             $process = make_process(
                 [
-                'composer',
-                'global',
-                'config',
-                'http-basic.'  . config('gitlab-sdk.url'),
-                '___token___',
-                $privateToken
+                    'composer',
+                    'global',
+                    'config',
+                    'http-basic.'.config('gitlab-sdk.url'),
+                    '___token___',
+                    $privateToken,
                 ]
             );
 
@@ -95,20 +100,53 @@ class FlignoToolkit
     {
         $process = make_process(
             [
-            'composer',
-            'global',
-            'config',
-            'http-basic.' . config('gitlab-sdk.url') . '.password'
+                'composer',
+                'global',
+                'config',
+                'http-basic.'.config('gitlab-sdk.url').'.password',
             ]
         );
 
         $process->run();
 
-        if ($process->isSuccessful()) {
-            return $process->getOutput();
+        if ($process->isSuccessful() && $output = $process->getOutput()) {
+            return $this->cleanToken($output);
         }
 
         return null;
+    }
+
+    /**
+     * @param  string  $token
+     * @return string
+     */
+    public function cleanToken(string $token): string
+    {
+        return preg_replace('/[^a-z\d\-_]/i', '', $token);
+    }
+
+    /**
+     * @return bool
+     */
+    public function removeGitlabTokenFromComposerAuth(): bool
+    {
+        if ($this->getGitlabTokenFromComposerAuth()) {
+            $process = make_process(
+                [
+                    'composer',
+                    'global',
+                    'config',
+                    '--unset',
+                    'http-basic.'.config('gitlab-sdk.url'),
+                ]
+            );
+
+            $process->run();
+
+            return $process->isSuccessful();
+        }
+
+        return false;
     }
 
     /**
@@ -120,21 +158,32 @@ class FlignoToolkit
     }
 
     /**
-     * @param  callable|null $callbackWithSteps
-     * @return Collection|null
+     * @return bool
      */
-    public function getCurrentUser(callable $callbackWithSteps = null): ?Collection
+    public function revokeToken(): bool
+    {
+        $log = $this->getGitlabSdk()->revokeToken();
+
+        return $log->isSuccessful();
+    }
+
+    /**
+     * @param  callable|null  $callbackWithSteps
+     * @return GitlabCurrentUserResponseData|null
+     */
+    public function getCurrentUser(callable $callbackWithSteps = null): ?GitlabCurrentUserResponseData
     {
         $hasCallback = (bool) $callbackWithSteps;
         $step = 0;
 
         $hasCallback && $callbackWithSteps($step++);
 
-        $req = $this->getGitlabSdk()->getHealthCheck();
+        $log = $this->getGitlabSdk()->getHealthCheck();
 
-        if ($req->ok()) {
+        if ($log->ok()) {
             $hasCallback && $callbackWithSteps($step);
-            return $req->data;
+
+            return GitlabCurrentUserResponseData::from($log, 'data');
         }
 
         $hasCallback && $callbackWithSteps(-1);
@@ -147,7 +196,7 @@ class FlignoToolkit
      */
     public function getCurrentUserGroups(): ?Collection
     {
-        $data = new GetAllGroupsAttributes;
+        $data = new GetAllGroupsAttributes();
 
         $result = collect();
 
@@ -169,12 +218,12 @@ class FlignoToolkit
     }
 
     /**
-     * @param  int $groupId
+     * @param  int  $groupId
      * @return Collection|null
      */
     public function getGroupPackages(int $groupId): ?Collection
     {
-        $data = new GetAllPackagesAttributes;
+        $data = new GetAllPackagesAttributes();
 
         $data->order_by = 'name';
         $data->package_type = 'composer';
@@ -203,12 +252,12 @@ class FlignoToolkit
      *****/
 
     /**
-     * @param  string        $package
-     * @param  bool          $isDevDependency
-     * @param  int|null      $groupId
-     * @param  string|null   $workingDirectory
-     * @param  bool          $shouldUpdate
-     * @param  callable|null $callbackWithSteps
+     * @param  string  $package
+     * @param  bool  $isDevDependency
+     * @param  int|null  $groupId
+     * @param  string|null  $workingDirectory
+     * @param  bool  $shouldUpdate
+     * @param  callable|null  $callbackWithSteps
      * @return bool
      */
     public function requirePackage(
@@ -227,10 +276,10 @@ class FlignoToolkit
             $repositoryArguments = [
                 'composer',
                 'config',
-                'repositories.' . config('gitlab-sdk.url') . '/' . $groupId,
-                "{\"type\": \"composer\", \"url\": \"" .
-                $this->getGitlabSdk()->getBaseUrl() .
-                "/group/$groupId/-/packages/composer/packages.json\"}"
+                'repositories.'.config('gitlab-sdk.url').'/'.$groupId,
+                '{"type": "composer", "url": "'.
+                $this->getGitlabSdk()->getBaseUrl().
+                "/group/$groupId/-/packages/composer/packages.json\"}",
             ];
 
             $process = make_process($repositoryArguments, $workingDirectory);
@@ -253,9 +302,9 @@ class FlignoToolkit
         if ($shouldRequire) {
             $packageArguments = collect(
                 [
-                'composer',
-                'require',
-                $package,
+                    'composer',
+                    'require',
+                    $package,
                 ]
             )->when(! $shouldUpdate, function (Collection $collection) {
                 return $collection->push('--no-update');
